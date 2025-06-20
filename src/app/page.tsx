@@ -1,59 +1,82 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import styles from './page.module.css';
 
+const direction = [
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
+] as const;
+
+const createboard = (size: number): number[][] => {
+  const grid: number[][] = [];
+  for (let y = 0; y < size; y++) {
+    const row: number[] = [];
+    for (let x = 0; x < size; x++) {
+      if (y % 2 !== 0 && x % 2 !== 0) {
+        row.push(1);
+      } else {
+        row.push(0);
+      }
+    }
+    grid.push(row);
+  }
+
+  return grid;
+};
+
+const createMaze = (board: number[][]): number[][] => {
+  const newMaze: number[][] = structuredClone(board);
+  for (let y = 0; y < board.length; y++) {
+    for (let x = 0; x < board[0].length; x++) {
+      if (board[y][x] === 1) {
+        for (let i = 0; i === 0; ) {
+          newMaze[y][x] = 1;
+          const dir = Math.floor(Math.random() * 4);
+          const dy = direction[dir][0] + y;
+          const dx = direction[dir][1] + x;
+          if (newMaze[dy][dx] === 0) {
+            newMaze[dy][dx] = 1;
+            i += 1;
+          }
+        }
+      }
+    }
+  }
+  console.log(newMaze);
+  return newMaze;
+};
+
 export default function Home() {
+  const board: number[][] = useMemo(() => {
+    return createboard(99);
+  }, []);
+  const [maze, setmaze] = useState<number[][]>(structuredClone(board));
+
+  useEffect(() => {
+    setmaze(createMaze(board));
+  }, [board]);
+
+  const clickhandlar = () => {
+    setmaze(createMaze(board));
+  };
+
   return (
     <div className={styles.container}>
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code} style={{ backgroundColor: '#fafafa' }}>
-            src/app/page.tsx
-          </code>
-        </p>
-
-        <div className={styles.grid}>
-          <a className={styles.card} href="https://nextjs.org/docs">
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a className={styles.card} href="https://nextjs.org/learn">
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a className={styles.card} href="https://github.com/vercel/next.js/tree/master/examples">
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <img src="vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+      <button onClick={clickhandlar}>生成</button>
+      <div className={styles.board} style={{ width: board.length * 5 }}>
+        {maze.map((row, y) =>
+          row.map((value, x) => (
+            <div
+              className={styles.block}
+              style={{ background: value === 1 ? '#000' : '#fff' }}
+              key={`${x}-${y}`}
+            />
+          )),
+        )}
+      </div>
     </div>
   );
 }
